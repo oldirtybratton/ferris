@@ -6,16 +6,14 @@ use bevy::{
     sprite::MaterialMesh2dBundle,
 };
 
-mod stepping;
-
 // These constants are defined in `Transform` units.
 // Using the default 2D camera they correspond 1:1 with screen pixels.
-const PADDLE_SIZE: Vec3 = Vec3::new(120.0, 20.0, 0.0);
-const GAP_BETWEEN_PADDLE_AND_FLOOR: f32 = 60.0;
-const GAP_BETWEEN_PADDLE_AND_CEILING: f32 = -60.0;
+const PADDLE_SIZE: Vec3 = Vec3::new(20.0, 120.0, 0.0);
+const GAP_BETWEEN_PADDLE_AND_FLOOR: f32 = 10.0;
+const GAP_BETWEEN_PADDLE_AND_CEILING: f32 = -10.0;
 const PADDLE_SPEED: f32 = 500.0;
 // How close can the paddle get to the wall
-const PADDLE_PADDING: f32 = 10.0;
+const PADDLE_PADDING: f32 = 20.0;
 
 // We set the z-value of the ball to 1 so it renders on top in the case of overlapping sprites.
 const BALL_STARTING_POSITION: Vec3 = Vec3::new(0.0, -50.0, 1.0);
@@ -46,12 +44,6 @@ const SCORE_COLOR: Color = Color::rgb(1.0, 0.5, 0.5);
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugins(
-            stepping::SteppingPlugin::default()
-                .add_schedule(Update)
-                .add_schedule(FixedUpdate)
-                .at(Val::Percent(35.0), Val::Percent(50.0)),
-        )
         .insert_resource(Scoreboard { score: 0 })
         .insert_resource(ClearColor(BACKGROUND_COLOR))
         .add_event::<CollisionEvent>()
@@ -202,7 +194,7 @@ fn setup(
     commands.spawn((
         SpriteBundle {
             transform: Transform {
-                translation: Vec3::new(0.0, paddle_y, 0.0),
+                translation: Vec3::new(paddle_y, 0.0, 0.0),
                 scale: PADDLE_SIZE,
                 ..default()
             },
@@ -219,7 +211,7 @@ fn setup(
     commands.spawn((
         SpriteBundle {
             transform: Transform {
-                translation: Vec3::new(0.0, paddle_z, 0.0),
+                translation: Vec3::new(paddle_z, 0.0, 0.0),
                 scale: PADDLE_SIZE,
                 ..default()
             },
@@ -297,14 +289,14 @@ fn move_p1_paddle(
 
     // Calculate the new horizontal paddle position based on player input
     let new_paddle_position =
-        paddle_transform.translation.x + direction * PADDLE_SPEED * time.delta_seconds();
+        paddle_transform.translation.y + direction * PADDLE_SPEED * time.delta_seconds();
 
     // Update the paddle position,
     // making sure it doesn't cause the paddle to leave the arena
-    let left_bound = LEFT_WALL + WALL_THICKNESS / 2.0 + PADDLE_SIZE.x / 2.0 + PADDLE_PADDING;
-    let right_bound = RIGHT_WALL - WALL_THICKNESS / 2.0 - PADDLE_SIZE.x / 2.0 - PADDLE_PADDING;
+    let top_bound = TOP_WALL + WALL_THICKNESS / 2.0 + PADDLE_SIZE.x / 2.0 + PADDLE_PADDING;
+    let bottom_bound = BOTTOM_WALL - WALL_THICKNESS / 2.0 - PADDLE_SIZE.x / 2.0 - PADDLE_PADDING;
 
-    paddle_transform.translation.x = new_paddle_position.clamp(left_bound, right_bound);
+    paddle_transform.translation.y = new_paddle_position.clamp(bottom_bound, top_bound);
 }
 
 fn move_p2_paddle(
@@ -325,14 +317,14 @@ fn move_p2_paddle(
 
     // Calculate the new horizontal paddle position based on player input
     let new_paddle_position =
-        paddle_transform.translation.x + direction * PADDLE_SPEED * time.delta_seconds();
+        paddle_transform.translation.y + direction * PADDLE_SPEED * time.delta_seconds();
 
     // Update the paddle position,
     // making sure it doesn't cause the paddle to leave the arena
-    let left_bound = LEFT_WALL + WALL_THICKNESS / 2.0 + PADDLE_SIZE.x / 2.0 + PADDLE_PADDING;
-    let right_bound = RIGHT_WALL - WALL_THICKNESS / 2.0 - PADDLE_SIZE.x / 2.0 - PADDLE_PADDING;
+    let top_bound = TOP_WALL + WALL_THICKNESS / 2.0 + PADDLE_SIZE.x / 2.0 + PADDLE_PADDING;
+    let bottom_bound = BOTTOM_WALL - WALL_THICKNESS / 2.0 - PADDLE_SIZE.x / 2.0 - PADDLE_PADDING;
 
-    paddle_transform.translation.x = new_paddle_position.clamp(left_bound, right_bound);
+    paddle_transform.translation.y = new_paddle_position.clamp(bottom_bound, top_bound);
 }
 
 fn apply_velocity(mut query: Query<(&mut Transform, &Velocity)>, time: Res<Time>) {
